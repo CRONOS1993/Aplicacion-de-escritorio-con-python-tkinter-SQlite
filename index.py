@@ -39,7 +39,12 @@ class Product:
         self.tree.grid(row = 4, column = 0 , columnspan = 2)
         self.tree.heading("#0", text = "Nombre" , anchor = CENTER)
         self.tree.heading("#1", text = "Precio" , anchor = CENTER)
-        
+       
+        # Botonoes 
+        ttk.Button(text = "BORRAR", command = self.delete_product).grid(row = 5, column = 0, sticky = W + E)
+        ttk.Button(text = "EDITAR", command = self.edit_product).grid(row = 5, column = 1, sticky = W + E)
+          
+        # llenando la filas de la tabla
         self.get_products() 
     
     def run_query(self, query, parameters = ()):
@@ -71,17 +76,63 @@ class Product:
             self.run_query(query, parameters)
             self.message["text"] = "Producto {} Ingresado Correctamente". format(self.name.get())
             self.name.delete(0, END)
-            self.price.delete(0, END)
-            
+            self.price.delete(0, END) 
         else:
-            self.message["text"] = "El Nombre y el Precio son Requeridos"
-        self.get_products()   
-                        
-            
-              
+            self.message["text"] = "El Nombre y El Precio Son Requeridos"
+        self.get_products()  
+    
+    def delete_product(self):
+        self.message["text"] = ""
+        try:
+            self.tree.item(self.tree.selection())["text"][0]   
+        except IndexError as e:
+            self.message["text"] = "Por Favor Seleccione Un Registro"  
+            return
+        name = self.tree.item(self.tree.selection())["text"]
+        query = "DELETE FROM product WHERE name= ?"
+        self.run_query(query, (name, ))
+        self.message["text"] = "El Registro {} ha sido eliminado correctamente". format(name)   
+        self.get_products()            
+    
+    def edit_product(self):
+        self.message['text'] = ''
+        try:
+            self.tree.item(self.tree.selection())['values'][0]
+        except IndexError as e:
+            self.message['text'] = 'Please, select Record'
+            return
+        name = self.tree.item(self.tree.selection())['text']
+        old_price = self.tree.item(self.tree.selection())['values'][0]
+        self.edit_wind = Toplevel()
+        self.edit_wind.title = 'Edit Product'
+        # Old Name
+        Label(self.edit_wind, text = 'Antiguo Nombre:').grid(row = 0, column = 1)
+        Entry(self.edit_wind, textvariable = StringVar(self.edit_wind, value = name), state = 'readonly').grid(row = 0, column = 2)
+        # New Name
+        Label(self.edit_wind, text = 'Nuevo Nombre :').grid(row = 1, column = 1)
+        new_name = Entry(self.edit_wind)
+        new_name.grid(row = 1, column = 2)
+
+        # Old Price 
+        Label(self.edit_wind, text = 'Antiguo Precio:').grid(row = 2, column = 1)
+        Entry(self.edit_wind, textvariable = StringVar(self.edit_wind, value = old_price), state = 'readonly').grid(row = 2, column = 2)
+        # New Price
+        Label(self.edit_wind, text = 'Nuevo Precio:').grid(row = 3, column = 1)
+        new_price= Entry(self.edit_wind)
+        new_price.grid(row = 3, column = 2)
+
+        Button(self.edit_wind, text = 'Actualizar', command = lambda: self.edit_records(new_name.get(), name, new_price.get(), old_price)).grid(row = 4, column = 2, sticky = W)
+        self.edit_wind.mainloop()
+
+    def edit_records(self, new_name, name, new_price, old_price):
+        query = 'UPDATE product SET name = ?, price = ? WHERE name = ? AND price = ?'
+        parameters = (new_name, new_price,name, old_price)
+        self.run_query(query, parameters)
+        self.edit_wind.destroy()
+        self.message['text'] = 'Record {} updated successfylly'.format(name)
+        self.get_products()                
+                    
 if __name__ == '__main__':
-    window = Tk() 
+    window = Tk()
     application = Product(window)
     window.mainloop()
-       
-       
