@@ -28,7 +28,11 @@ class Product:
         self.price.grid(row = 2, column = 1)
         
         #Boton Agregar Producto 
-        ttk.Button(frame, text = "Guardar Producto").grid (row = 3, columnspan = 2, sticky = W + E)
+        ttk.Button(frame, text = "Guardar Producto", command = self.add_product).grid (row = 3, columnspan = 2, sticky = W + E)
+        
+        #Mensaje
+        self.message = Label(text = "", fg = "red")
+        self.message.grid(row = 3, column = 0 , columnspan = 2, sticky = W + E)
         
         #Tabla 
         self.tree = ttk.Treeview(height  =  10, columns = 2)
@@ -56,6 +60,22 @@ class Product:
         # Rellenando los datos 
         for row in db_rows:
             self.tree.insert("", 0, text = row[1], values = row[2])
+    
+    def validation(self):
+        return len(self.name.get()) != 0 and len(self.price.get()) != 0
+    
+    def add_product(self):  
+        if self.validation():
+            query = "INSERT INTO product VALUES(NULL, ?, ?)"
+            parameters = (self.name.get(), self.price.get())  
+            self.run_query(query, parameters)
+            self.message["text"] = "Producto {} Ingresado Correctamente". format(self.name.get())
+            self.name.delete(0, END)
+            self.price.delete(0, END)
+            
+        else:
+            self.message["text"] = "El Nombre y el Precio son Requeridos"
+        self.get_products()   
                         
             
               
