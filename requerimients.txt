@@ -1,0 +1,2 @@
+SQLite3 = 0611
+python = 3.10
